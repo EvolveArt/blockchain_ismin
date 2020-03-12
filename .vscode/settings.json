@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "crypto.h": "c",
+        "blockchain.h": "c"
+    }
+}

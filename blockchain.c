@@ -8,16 +8,57 @@ void hash256(unsigned char *output, const char *input)
 {
 
     size_t length = strlen(input);
-    unsigned char md[32];
+    unsigned char md[HASH_SIZE];
     SHA256((const unsigned char *)input, length, md);
-    memcpy(output, md, 32);
+    memcpy(output, md, HASH_SIZE);
 
     return;
 }
 
-char *computeHash(Block *block)
+char *computeHash(Block *block, char *output)
 {
-    return "";
+    char block_string[BLOCK_STR_SIZE];
+    string_block(block_string, block);
+
+    unsigned char hash_value[HASH_SIZE];
+    hash256(hash_value, block_string);
+
+    char buffer[3];
+    char hex_hash[HASH_HEX_SIZE] = {0};
+    for (int i = 0; i < HASH_SIZE; i++)
+    {
+        memset(buffer, 0, sizeof(buffer));
+        sprintf(buffer, "%02x", hash_value[i]);
+        strcat(hex_hash, buffer);
+    }
+
+    strcpy(output, hex_hash);
+
+    output[HASH_HEX_SIZE] = 0;
+
+    return output;
+}
+
+char *string_block(char *output, Block *block)
+{
+
+    if (block == NULL || output == NULL)
+        return NULL;
+
+    char block_string[BLOCK_STR_SIZE] = {0};
+
+    //Add index and time
+    sprintf(block_string, "%010i.%010i.", block->index, block->timestamp);
+
+    //Add previous hash
+    strcat(block_string, block->previousHash);
+    strcpy(output, block_string);
+
+    //Add message
+    strcat(block_string, block->message);
+    strcpy(output, block_string);
+
+    return output;
 }
 
 /**
@@ -28,35 +69,57 @@ char *computeHash(Block *block)
 **/
 Block generateNextBlock(char message[MESSAGE_SIZE], Blockchain *blockchain)
 {
-    if (blockchain->head == NULL)
-    {
-        Block *newHead = (Block *)malloc(sizeof(Block));
-        SHA256("", sizeof(""), newHead->previousHash);
-        strcpy(newHead->message, message);
-        blockchain->head = newHead;
-        return *newHead;
-    }
 
     Block *currentBlock = blockchain->head;
-    while (currentBlock->next)
-        currentBlock = currentBlock->next;
-
     Block *newBlock = (Block *)malloc(sizeof(Block));
-    currentBlock->next = newBlock;
+
+    newBlock->next = currentBlock;
+    newBlock->index = currentBlock->index + 1;
     strcpy(newBlock->message, message);
-    SHA256(toString(*currentBlock), sizeof(*currentBlock), newBlock->previousHash);
+    newBlock->timestamp = time(NULL);
+    strcpy(newBlock->previousHash, currentBlock->hash);
+    computeHash(newBlock->hash, newBlock);
 
     return *newBlock;
 }
 
 bool isValidNewBlock(Block *newBlock, Block *previousBlock)
 {
-    hashPrinter(SHA256(toString(*previousBlock), sizeof(*previousBlock)), HASH_SIZE);
-    hashPrinter(newBlock->previousHash, HASH_SIZE);
-    if (hashCompare(SHA256(toString(*previousBlock), sizeof(*previousBlock), newBlock->previousHash)))
-        return true;
-    else
+    char *hash_to_test[HASH_SIZE];
+
+    if (previousBlock->index + 1 != newBlock->index)
+    {
+        printf("Block invalide : index invalide.");
         return false;
+    }
+    else if (strcmp(previousBlock->hash, newBlock->previousHash) != 0)
+    {
+        printf("Block invalide : hash précédent invalide.");
+        return false;
+    }
+    else if (strcmp(computeHash(newBlock, hash_to_test), newBlock->hash) != 0)
+    {
+        printf("Block invalide: hashs différents (%s != %s)", hash_to_test, newBlock->hash);
+        return false;
+    }
+
+    return true;
+}
+
+bool isValidChain(Blockchain *blockchainToValidate)
+{
+    Block *currentBlock = blockchainToValidate->head;
+    while (currentBlock->next)
+    {
+        if (!isValidNewBlock(currentBlock->next, currentBlock))
+        {
+            printf("Le block d'index %d est invalide.", currentBlock->next->index);
+            return false;
+        }
+        currentBlock = currentBlock->next;
+    }
+
+    return true;
 }
 
 unsigned char *toString(Block block)
@@ -72,4 +135,24 @@ void hashPrinter(unsigned char *hash, int length)
     {
         printf("%02x", hash[i]);
     }
+}
+
+Blockchain *initBlockchain()
+{
+    Blockchain *blockchain = (Blockchain *)malloc(sizeof(Blockchain));
+
+    // Création du premier block
+    Block *genesisBlock = (Block *)malloc(sizeof(Block));
+    genesisBlock->index = 0;
+    strcpy(genesisBlock->hash, "816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7");
+    strcpy(genesisBlock->message, "ISMIN");
+    strcpy(genesisBlock->previousHash, NULL);
+    genesisBlock->timestamp = time(NULL);
+    genesisBlock->next = NULL;
+
+    // Initialisation de la blockchain
+    blockchain->head = genesisBlock;
+    blockchain->length = 1;
+
+    return blockchain;
 }

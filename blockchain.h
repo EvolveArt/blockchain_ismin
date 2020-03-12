@@ -9,7 +9,9 @@
 /////
 
 #define HASH_SIZE 32
-#define MESSAGE_SIZE 64
+#define HASH_HEX_SIZE 65
+#define MESSAGE_SIZE 65
+#define BLOCK_STR_SIZE 30000
 
 /////
 // Structures
@@ -36,14 +38,18 @@ typedef struct Blockchain_
 /////
 
 // Crypto
-char *computeHash(Block *block);
+char *computeHash(Block *block, char *output);
 void hash256(unsigned char *output, const char *input);
+char *string_block(char *output, Block *block);
+unsigned char *toString(Block block);
+void hashPrinter(unsigned char *hash, int length);
 
 // Blockchain
 Block generateNextBlock(char message[MESSAGE_SIZE], Blockchain *blockchain);
 bool isValidNewBlock(Block *newBlock, Block *previousBlock);
-bool isValidBlockStructure(Block *block);
+// bool isValidBlockStructure(Block *block);
 bool isValidChain(Blockchain *blockchainToValidate);
-void replaceChain(Blockchain *newChain);
+// void replaceChain(Blockchain *newChain);
+Blockchain *initBlockchain();
 
 #endif

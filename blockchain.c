@@ -29,21 +29,6 @@ char *computeHash(Block *block, char *output)
 
     unsigned char hash_value[HASH_SIZE];
     hash256(hash_value, block_string);
-
-    char buffer[3];
-    char hex_hash[HASH_HEX_SIZE] = {0};
-    for (int i = 0; i < HASH_SIZE; i++)
-    {
-        memset(buffer, 0, sizeof(buffer));
-        sprintf(buffer, "%02x", hash_value[i]);
-        strcat(hex_hash, buffer);
-    }
-
-    strcpy(output, hex_hash);
-
-    output[HASH_HEX_SIZE] = 0;
-
-    return output;
 }
 
 char *string_block(char *output, Block *block)
@@ -85,9 +70,11 @@ Block generateNextBlock(char message[MESSAGE_SIZE], Blockchain *blockchain)
     strcpy(newBlock->message, message);
     newBlock->timestamp = time(NULL);
     strcpy(newBlock->previousHash, currentBlock->hash);
-    computeHash(newBlock, newBlock->hash);
+    //computeHash(newBlock, newBlock->hash);
+    strcpy(newBlock->hash, "0");
 
     blockchain->head = newBlock;
+
     blockchain->length++;
 
     return *newBlock;
@@ -155,8 +142,8 @@ Blockchain *initBlockchain()
     // Création du premier block
     Block *genesisBlock = (Block *)malloc(sizeof(Block));
     genesisBlock->index = 0;
-    strcpy(genesisBlock->hash, "816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7");
-    strcpy(genesisBlock->message, "ISMIN");
+    strcpy(genesisBlock->hash, "8216534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7");
+    strcpy(genesisBlock->message, "ISMIN 1");
     strcpy(genesisBlock->previousHash, "");
     genesisBlock->timestamp = time(NULL);
     genesisBlock->next = NULL;
@@ -176,7 +163,7 @@ void displayBlockchain(Blockchain *blockchain)
 
     while (currentBlock)
     {
-        printf("\n Block %d : msg->'%s' hash->'%s' timestamp->'%d'", currentBlock->index, currentBlock->message, currentBlock->hash, currentBlock->timestamp);
+        printf("\n Block %d : msg->'%s' hash->'%s' prevhash->'%s' timestamp->'%d'", currentBlock->index, currentBlock->message, currentBlock->hash, currentBlock->previousHash, currentBlock->timestamp);
         currentBlock = currentBlock->next;
     }
 }

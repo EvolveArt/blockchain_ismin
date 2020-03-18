@@ -8,7 +8,7 @@
 // Constantes
 /////
 
-#define HASH_SIZE 32
+#define HASH_SIZE 65
 #define HASH_HEX_SIZE 65
 #define MESSAGE_SIZE 65
 #define BLOCK_STR_SIZE 30000

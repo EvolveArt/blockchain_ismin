@@ -1,8 +1,14 @@
-#include <blockchain.h>
+#include "blockchain.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
+
+void SHA256(const unsigned char *input, size_t length, unsigned char *md)
+{
+    return;
+}
 
 void hash256(unsigned char *output, const char *input)
 {
@@ -17,6 +23,7 @@ void hash256(unsigned char *output, const char *input)
 
 char *computeHash(Block *block, char *output)
 {
+
     char block_string[BLOCK_STR_SIZE];
     string_block(block_string, block);
 
@@ -78,14 +85,17 @@ Block generateNextBlock(char message[MESSAGE_SIZE], Blockchain *blockchain)
     strcpy(newBlock->message, message);
     newBlock->timestamp = time(NULL);
     strcpy(newBlock->previousHash, currentBlock->hash);
-    computeHash(newBlock->hash, newBlock);
+    computeHash(newBlock, newBlock->hash);
+
+    blockchain->head = newBlock;
+    blockchain->length++;
 
     return *newBlock;
 }
 
 bool isValidNewBlock(Block *newBlock, Block *previousBlock)
 {
-    char *hash_to_test[HASH_SIZE];
+    char hash_to_test[HASH_SIZE];
 
     if (previousBlock->index + 1 != newBlock->index)
     {
@@ -139,6 +149,7 @@ void hashPrinter(unsigned char *hash, int length)
 
 Blockchain *initBlockchain()
 {
+
     Blockchain *blockchain = (Blockchain *)malloc(sizeof(Blockchain));
 
     // Création du premier block
@@ -146,7 +157,7 @@ Blockchain *initBlockchain()
     genesisBlock->index = 0;
     strcpy(genesisBlock->hash, "816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7");
     strcpy(genesisBlock->message, "ISMIN");
-    strcpy(genesisBlock->previousHash, NULL);
+    strcpy(genesisBlock->previousHash, "");
     genesisBlock->timestamp = time(NULL);
     genesisBlock->next = NULL;
 
@@ -155,4 +166,17 @@ Blockchain *initBlockchain()
     blockchain->length = 1;
 
     return blockchain;
+}
+
+void displayBlockchain(Blockchain *blockchain)
+{
+    Block *currentBlock = blockchain->head;
+
+    printf("\nLongueur de la blockchain : %d", blockchain->length);
+
+    while (currentBlock)
+    {
+        printf("\n Block %d : msg->'%s' hash->'%s' timestamp->'%d'", currentBlock->index, currentBlock->message, currentBlock->hash, currentBlock->timestamp);
+        currentBlock = currentBlock->next;
+    }
 }

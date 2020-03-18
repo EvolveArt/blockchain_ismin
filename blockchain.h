@@ -44,6 +44,8 @@ char *string_block(char *output, Block *block);
 unsigned char *toString(Block block);
 void hashPrinter(unsigned char *hash, int length);
 
+void SHA256(const unsigned char *input, size_t length, unsigned char *md);
+
 // Blockchain
 Block generateNextBlock(char message[MESSAGE_SIZE], Blockchain *blockchain);
 bool isValidNewBlock(Block *newBlock, Block *previousBlock);
@@ -51,5 +53,6 @@ bool isValidNewBlock(Block *newBlock, Block *previousBlock);
 bool isValidChain(Blockchain *blockchainToValidate);
 // void replaceChain(Blockchain *newChain);
 Blockchain *initBlockchain();
+void displayBlockchain(Blockchain *blockchain);
 
 #endif

@@ -145,6 +145,10 @@ char *string_block(char *output, Block *block)
     strcat(block_string, block->message);
     strcpy(output, block_string);
 
+    //Add nonce
+    strcat(block_string, block->nonce);
+    strcpy(output, block_string);
+
     return output;
 }
 

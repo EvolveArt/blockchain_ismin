@@ -6,7 +6,7 @@
 #include <time.h>
 #include <ctype.h>
 
-void hexToBinary(char *input, char *output)
+void hexToBinary(const char *input, char *output)
 {
 
     long int i = 0;
@@ -89,7 +89,7 @@ void SHA256(const unsigned char *input, size_t length, unsigned char *md)
     return;
 }
 
-bool hashMatchesDifficulty(char hash[HASH_SIZE], const int difficulty)
+bool hashMatchesDifficulty(const char hash[HASH_SIZE], const int difficulty)
 {
     // Conversion en binaire du hash
     char binaryHash[BINARY_SIZE];
@@ -122,6 +122,8 @@ char *computeHash(Block *block, char *output)
 
     unsigned char hash_value[HASH_SIZE];
     hash256(hash_value, block_string);
+
+    return "";
 }
 
 char *string_block(char *output, Block *block)
@@ -133,7 +135,7 @@ char *string_block(char *output, Block *block)
     char block_string[BLOCK_STR_SIZE] = {0};
 
     //Add index and time
-    sprintf(block_string, "%010i.%010i.", block->index, block->timestamp);
+    sprintf(block_string, "%010i.%010li.", block->index, block->timestamp);
 
     //Add previous hash
     strcat(block_string, block->previousHash);
@@ -259,12 +261,12 @@ void displayBlockchain(Blockchain *blockchain)
 
     while (currentBlock)
     {
-        printf("\n Block %d : msg->'%s' hash->'%s' prevhash->'%s' timestamp->'%d'", currentBlock->index, currentBlock->message, currentBlock->hash, currentBlock->previousHash, currentBlock->timestamp);
+        printf("\n Block %d : msg->'%s' hash->'%s' prevhash->'%s' timestamp->'%ld'", currentBlock->index, currentBlock->message, currentBlock->hash, currentBlock->previousHash, currentBlock->timestamp);
         currentBlock = currentBlock->next;
     }
 }
 
-Block findBlock(int index, char prevHash[HASH_SIZE], unsigned int timestamp, char message[MESSAGE_SIZE], unsigned int difficulty)
+Block findBlock(int index, char prevHash[HASH_SIZE], long int timestamp, char message[MESSAGE_SIZE], unsigned int difficulty)
 {
 
     Block *block_ = (Block *)malloc(sizeof(Block));
@@ -287,4 +289,64 @@ Block findBlock(int index, char prevHash[HASH_SIZE], unsigned int timestamp, cha
         }
         nonce++;
     }
+}
+
+int getDifficulty(Blockchain *blockchain)
+{
+    Block *latestBlock = blockchain->head;
+    if (latestBlock->index % DIFFICULTY_ADJUSMENT_INTERVAL == 0 && latestBlock->index != 0)
+    {
+        return getAdjustedDifficulty(latestBlock, blockchain);
+    }
+    else
+    {
+        return latestBlock->difficulty;
+    }
+}
+
+int getAdjustedDifficulty(Block *latestBlock, Blockchain *blockchain)
+{
+    Block *prevAdjustmentBlock = blockchain->head;
+    // Sélection du dernier block d'ajustement de la difficulté
+    for (size_t i = 0; i < DIFFICULTY_ADJUSMENT_INTERVAL; i++)
+    {
+        prevAdjustmentBlock = prevAdjustmentBlock->next;
+    }
+
+    // Temps écoulé supposé
+    int expectedTime = DIFFICULTY_ADJUSMENT_INTERVAL * BLOCK_GENERATION_INTERVAL;
+    // Temps réellement écoulé
+    int takenTime = latestBlock->timestamp - prevAdjustmentBlock->timestamp;
+
+    // Ajustement de la difficulté
+    if (takenTime < expectedTime / 2)
+    {
+        return prevAdjustmentBlock->difficulty + 1;
+    }
+    else if (takenTime > expectedTime * 2)
+    {
+        return prevAdjustmentBlock->difficulty - 1;
+    }
+    else
+    {
+        return prevAdjustmentBlock->difficulty;
+    }
+}
+
+/**
+ * Validation d'un nouveau block par rapport a son timestamp
+ * Le block est valide si : 
+ * - Le timestamp est au plus 1 min dans le futur du temps actuel
+ * - Le timestamp est au plus 1 min dans le passé du block précédent
+ * 
+ * params: 
+ * newBlock : Block* -> nouveau block a valider
+ * previousBlock : Block* -> block précédent dans la blockchain
+ * 
+ * return: bool -> true si le block est valide
+ * 
+ **/
+bool isValidTimestamp(Block *newBlock, Block *previousBlock)
+{
+    return (previousBlock->timestamp - 60 < newBlock->timestamp) && (newBlock->timestamp - 60 < time(NULL));
 }

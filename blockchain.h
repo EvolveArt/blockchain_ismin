@@ -26,7 +26,7 @@ typedef struct Block_
     unsigned int index;
     char hash[HASH_SIZE];
     char previousHash[HASH_SIZE];
-    unsigned int timestamp;
+    long int timestamp;
     char message[MESSAGE_SIZE];
 
     unsigned int difficulty;
@@ -51,7 +51,7 @@ void hash256(unsigned char *output, const char *input);
 char *string_block(char *output, Block *block);
 unsigned char *toString(Block block);
 void hashPrinter(unsigned char *hash, int length);
-void hexToBinary(char *input, char *output);
+void hexToBinary(const char *input, char *output);
 
 void SHA256(const unsigned char *input, size_t length, unsigned char *md);
 
@@ -65,8 +65,11 @@ Blockchain *initBlockchain();
 void displayBlockchain(Blockchain *blockchain);
 
 // Proof of work
-bool hashMatchesDifficulty(char hash[HASH_SIZE], const int difficulty);
-Block findBlock(int index, char prevHash[HASH_SIZE], unsigned int timestamp, char message[MESSAGE_SIZE], unsigned int difficulty);
+bool hashMatchesDifficulty(const char hash[HASH_SIZE], const int difficulty);
+Block findBlock(int index, char prevHash[HASH_SIZE], long int timestamp, char message[MESSAGE_SIZE], unsigned int difficulty);
+int getDifficulty(Blockchain *blockchain);
+int getAdjustedDifficulty(Block *latestBlock, Blockchain *blockchain);
+bool isValidTimestamp(Block *newBlock, Block *previousBlock);
 
 // Utils
 bool startsWith(const char *pre, const char *str);

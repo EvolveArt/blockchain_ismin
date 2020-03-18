@@ -4,10 +4,103 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
+#include <ctype.h>
+
+void hexToBinary(char *input, char *output)
+{
+
+    long int i = 0;
+    while (input[i])
+    {
+
+        switch (input[i])
+        {
+        case '0':
+            strcat(output, "0000");
+            break;
+        case '1':
+            strcat(output, "0001");
+            break;
+        case '2':
+            strcat(output, "0010");
+            break;
+        case '3':
+            strcat(output, "0011");
+            break;
+        case '4':
+            strcat(output, "0100");
+            break;
+        case '5':
+            strcat(output, "0101");
+            break;
+        case '6':
+            strcat(output, "0110");
+            break;
+        case '7':
+            strcat(output, "0111");
+            break;
+        case '8':
+            strcat(output, "1000");
+            break;
+        case '9':
+            strcat(output, "1001");
+            break;
+        case 'A':
+        case 'a':
+            strcat(output, "1010");
+            break;
+        case 'B':
+        case 'b':
+            strcat(output, "1011");
+            break;
+        case 'C':
+        case 'c':
+            strcat(output, "1100");
+            break;
+        case 'D':
+        case 'd':
+            strcat(output, "1101");
+            break;
+        case 'E':
+        case 'e':
+            strcat(output, "1110");
+            break;
+        case 'F':
+        case 'f':
+            strcat(output, "1111");
+            break;
+        default:
+            printf("\nInvalid hexadecimal digit %c",
+                   input[i]);
+        }
+        i++;
+    }
+}
+
+bool startsWith(const char *pre, const char *str)
+{
+    size_t lenpre = strlen(pre),
+           lenstr = strlen(str);
+    return lenstr < lenpre ? false : memcmp(pre, str, lenpre) == 0;
+}
 
 void SHA256(const unsigned char *input, size_t length, unsigned char *md)
 {
     return;
+}
+
+bool hashMatchesDifficulty(char hash[HASH_SIZE], const int difficulty)
+{
+    // Conversion en binaire du hash
+    char binaryHash[BINARY_SIZE];
+    hexToBinary(hash, binaryHash);
+
+    // Creation de la chaine de caractère "0"*difficulty
+    char *prefix = malloc(difficulty + 1);
+    memset(prefix, '0', difficulty);
+    prefix[difficulty] = '\0';
+
+    return startsWith(prefix, hash);
 }
 
 void hash256(unsigned char *output, const char *input)
@@ -148,6 +241,9 @@ Blockchain *initBlockchain()
     genesisBlock->timestamp = time(NULL);
     genesisBlock->next = NULL;
 
+    genesisBlock->difficulty = 0;
+    genesisBlock->nonce = 0;
+
     // Initialisation de la blockchain
     blockchain->head = genesisBlock;
     blockchain->length = 1;
@@ -165,5 +261,30 @@ void displayBlockchain(Blockchain *blockchain)
     {
         printf("\n Block %d : msg->'%s' hash->'%s' prevhash->'%s' timestamp->'%d'", currentBlock->index, currentBlock->message, currentBlock->hash, currentBlock->previousHash, currentBlock->timestamp);
         currentBlock = currentBlock->next;
+    }
+}
+
+Block findBlock(int index, char prevHash[HASH_SIZE], unsigned int timestamp, char message[MESSAGE_SIZE], unsigned int difficulty)
+{
+
+    Block *block_ = (Block *)malloc(sizeof(Block));
+    strcpy(block_->previousHash, prevHash);
+    strcpy(block_->message, message);
+    block_->timestamp = timestamp;
+    block_->index = index;
+    block_->difficulty = difficulty;
+
+    unsigned int nonce = 0;
+    while (true)
+    {
+        const char hash[HASH_SIZE];
+        computeHash(block_, hash);
+        if (hashMatchesDifficulty(hash, difficulty))
+        {
+            block_->nonce = nonce;
+            strcpy(block_->hash, hash);
+            return *block_;
+        }
+        nonce++;
     }
 }

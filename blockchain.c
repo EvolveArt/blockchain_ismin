@@ -135,7 +135,7 @@ char *string_block(char *output, Block *block)
     char block_string[BLOCK_STR_SIZE] = {0};
 
     //Add index and time
-    sprintf(block_string, "%010i.%010li.", block->index, block->timestamp);
+    sprintf(block_string, "%010i.%010li.%010i", block->index, block->timestamp, block->nonce);
 
     //Add previous hash
     strcat(block_string, block->previousHash);
@@ -143,10 +143,6 @@ char *string_block(char *output, Block *block)
 
     //Add message
     strcat(block_string, block->message);
-    strcpy(output, block_string);
-
-    //Add nonce
-    strcat(block_string, block->nonce);
     strcpy(output, block_string);
 
     return output;

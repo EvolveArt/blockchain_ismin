@@ -85,7 +85,7 @@ bool startsWith(const char *pre, const char *str)
     return lenstr < lenpre ? false : memcmp(pre, str, lenpre) == 0;
 }
 
-bool hashMatchesDifficulty(const char hash[HASH_SIZE], const int difficulty)
+bool hashMatchesDifficulty(const char hash[HASH_HEX_SIZE], const int difficulty)
 {
     // Conversion en binaire du hash
     char binaryHash[BINARY_SIZE];
@@ -103,9 +103,9 @@ void hash256(unsigned char *output, const char *input)
 {
 
     size_t length = strlen(input);
-    unsigned char md[32];
+    unsigned char md[HASH_SIZE];
     SHA256((const unsigned char*)input, length, md);
-    memcpy(output,md, 32);
+    memcpy(output,md, HASH_SIZE);
 
     return;
 }
@@ -116,12 +116,12 @@ char *computeHash(Block *block, char *output)
     char block_string[BLOCK_STR_SIZE];
     string_block(block_string, block);
 
-    unsigned char hash_value[32];
+    unsigned char hash_value[HASH_SIZE];
     hash256(hash_value, block_string);
 
     char buffer[3];
     char hex_hash[HASH_HEX_SIZE] = {0};
-    for(int i = 0; i < 32; i++) {
+    for(int i = 0; i < HASH_SIZE; i++) {
         memset(buffer, 0, sizeof(buffer));
         sprintf(buffer,"%02x", hash_value[i]);
         strcat(hex_hash, buffer);
@@ -188,7 +188,7 @@ Block generateNextBlock(char message[MESSAGE_SIZE], Blockchain *blockchain)
 
 bool isValidNewBlock(Block *newBlock, Block *previousBlock)
 {
-    char hash_to_test[HASH_SIZE];
+    char hash_to_test[HASH_HEX_SIZE];
 
     if (previousBlock->index + 1 != newBlock->index)
     {
@@ -277,7 +277,7 @@ void displayBlockchain(Blockchain *blockchain)
     }
 }
 
-Block findBlock(int index, char prevHash[HASH_SIZE], long int timestamp, char message[MESSAGE_SIZE], unsigned int difficulty)
+Block findBlock(int index, char prevHash[HASH_HEX_SIZE], long int timestamp, char message[MESSAGE_SIZE], unsigned int difficulty)
 {
 
     Block *block_ = (Block *)malloc(sizeof(Block));
@@ -290,7 +290,7 @@ Block findBlock(int index, char prevHash[HASH_SIZE], long int timestamp, char me
     unsigned int nonce = 0;
     while (true)
     {
-        const char hash[HASH_SIZE];
+        const char hash[HASH_HEX_SIZE];
         computeHash(block_, hash);
         if (hashMatchesDifficulty(hash, difficulty))
         {

@@ -1,7 +1,7 @@
 all: blockchain
 
 blockchain: blockchain.o main.o
-	gcc -o blockchain blockchain.o main.o
+	gcc -o blockchain blockchain.o main.o -lssl -lcrypto
 
 blockchain.o: blockchain.c
 	gcc -o blockchain.o -c blockchain.c -W -Wall -std=c99

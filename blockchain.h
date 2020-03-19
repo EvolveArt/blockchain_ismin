@@ -12,7 +12,7 @@
 #define HASH_HEX_SIZE 65
 #define BINARY_SIZE HASH_SIZE * 4 + 1
 #define MESSAGE_SIZE 65
-#define BLOCK_STR_SIZE 30000
+#define BLOCK_STR_SIZE 100
 
 #define BLOCK_GENERATION_INTERVAL 10     // seconds
 #define DIFFICULTY_ADJUSMENT_INTERVAL 10 // blocks
@@ -24,8 +24,8 @@
 typedef struct Block_
 {
     unsigned int index;
-    char hash[HASH_SIZE];
-    char previousHash[HASH_SIZE];
+    char hash[HASH_HEX_SIZE];
+    char previousHash[HASH_HEX_SIZE];
     long int timestamp;
     char message[MESSAGE_SIZE];
 
@@ -52,8 +52,6 @@ char *string_block(char *output, Block *block);
 unsigned char *toString(Block block);
 void hashPrinter(unsigned char *hash, int length);
 void hexToBinary(const char *input, char *output);
-
-void SHA256(const unsigned char *input, size_t length, unsigned char *md);
 
 // Blockchain
 Block generateNextBlock(char message[MESSAGE_SIZE], Blockchain *blockchain);

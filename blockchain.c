@@ -89,7 +89,7 @@ bool startsWith(const char *pre, const char *str)
 bool hashMatchesDifficulty(const char *hash, const int difficulty)
 {
     // Conversion en binaire du hash
-    char binaryHash[BINARY_SIZE];
+    char binaryHash[BINARY_SIZE] = "";
     hexToBinary(hash, binaryHash);
 
     // Creation de la chaine de caractère "0"*difficulty
@@ -97,7 +97,9 @@ bool hashMatchesDifficulty(const char *hash, const int difficulty)
     memset(prefix, '0', difficulty);
     prefix[difficulty] = '\0';
 
-    return startsWith(prefix, hash);
+    //printf("\n bin : %s", binaryHash);
+
+    return startsWith(prefix, binaryHash);
 }
 
 void hash256(unsigned char *output, const char *input)

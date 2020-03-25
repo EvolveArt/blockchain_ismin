@@ -10,7 +10,7 @@
 
 #define HASH_SIZE 32
 #define HASH_HEX_SIZE 65
-#define BINARY_SIZE HASH_SIZE * 4 + 1
+#define BINARY_SIZE (HASH_HEX_SIZE * 4 + 1)
 #define MESSAGE_SIZE 65
 #define BLOCK_STR_SIZE 100
 

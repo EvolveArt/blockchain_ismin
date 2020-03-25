@@ -64,12 +64,14 @@ void displayBlockchain(Blockchain *blockchain);
 
 // Proof of work
 bool hashMatchesDifficulty(const char hash[HASH_SIZE], const int difficulty);
-Block findBlock(int index, char prevHash[HASH_SIZE], long int timestamp, char message[MESSAGE_SIZE], unsigned int difficulty);
 int getDifficulty(Blockchain *blockchain);
 int getAdjustedDifficulty(Block *latestBlock, Blockchain *blockchain);
 bool isValidTimestamp(Block *newBlock, Block *previousBlock);
 
 // Utils
 bool startsWith(const char *pre, const char *str);
+
+// Distributed computing
+
 
 #endif

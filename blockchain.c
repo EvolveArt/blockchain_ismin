@@ -172,18 +172,36 @@ Block generateNextBlock(char message[MESSAGE_SIZE], Blockchain *blockchain)
     
     newBlock->next = currentBlock;
     newBlock->index = currentBlock->index + 1;
+    strcpy(newBlock->previousHash, currentBlock->hash);
 
     strcpy(newBlock->message, message);
-    newBlock->timestamp = time(NULL);
 
-    computeHash(newBlock, newBlock->hash);
+    int difficulty = getDifficulty(blockchain);
+    printf("\nBlockchain Difficulty = %d", difficulty);
 
-    strcpy(newBlock->previousHash, currentBlock->hash);
+    unsigned int nonce = 0;
+    while (true)
+    {
+        newBlock->timestamp = time(NULL);
+        newBlock->nonce = nonce;
+        const char hash[HASH_HEX_SIZE];
+        computeHash(newBlock, hash);
+        //printf("\nhash = %s", hash);
+        if (hashMatchesDifficulty(hash, difficulty))
+        {
+            strcpy(newBlock->hash, hash);
+            break;
+        }
+        nonce++;
+    }    
+
+    newBlock->difficulty = difficulty;
     
+
     blockchain->head = newBlock;
 
     blockchain->length++;
-
+    printf("\nNew Block found of index %d", newBlock->index);
     return *newBlock;
 }
 
@@ -193,18 +211,21 @@ bool isValidNewBlock(Block *newBlock, Block *previousBlock)
 
     if (previousBlock->index + 1 != newBlock->index)
     {
-        printf("Block invalide : index invalide.");
+        printf("\nBlock invalide : indexs invalide (%d + 1 != %d).", previousBlock->index, newBlock->index);
         return false;
     }
     else if (strcmp(previousBlock->hash, newBlock->previousHash) != 0)
     {
-        printf("Block invalide : hash précédent invalide.");
+        printf("\nBlock invalide : hash précédent invalide.");
         return false;
     }
     else if (strcmp(computeHash(newBlock, hash_to_test), newBlock->hash) != 0)
     {
-        printf("Block invalide: hashs différents (%s != %s)", hash_to_test, newBlock->hash);
+        printf("\nBlock invalide: hashs différents (%s != %s)", hash_to_test, newBlock->hash);
         return false;
+    }
+    else if(!isValidTimestamp(newBlock, previousBlock)) {
+        printf("\nBlock invalide : Les timestamps ne concordent pas.");
     }
 
     return true;
@@ -215,14 +236,15 @@ bool isValidChain(Blockchain *blockchainToValidate)
     Block *currentBlock = blockchainToValidate->head;
     while (currentBlock->next)
     {
-        if (!isValidNewBlock(currentBlock->next, currentBlock))
+        if (!isValidNewBlock(currentBlock, currentBlock->next))
         {
-            printf("Le block d'index %d est invalide.", currentBlock->next->index);
+            printf("\nLe block d'index %d est invalide.", currentBlock->next->index);
             return false;
         }
         currentBlock = currentBlock->next;
     }
 
+    printf("\nLa blockchain est valide.");
     return true;
 }
 
@@ -255,7 +277,7 @@ Blockchain *initBlockchain()
     genesisBlock->timestamp = time(NULL);
     genesisBlock->next = NULL;
 
-    genesisBlock->difficulty = 0;
+    genesisBlock->difficulty = 1;
     genesisBlock->nonce = 0;
 
     // Initialisation de la blockchain
@@ -278,36 +300,13 @@ void displayBlockchain(Blockchain *blockchain)
     }
 }
 
-Block findBlock(int index, char prevHash[HASH_HEX_SIZE], long int timestamp, char message[MESSAGE_SIZE], unsigned int difficulty)
-{
-
-    Block *block_ = (Block *)malloc(sizeof(Block));
-    strcpy(block_->previousHash, prevHash);
-    strcpy(block_->message, message);
-    block_->timestamp = timestamp;
-    block_->index = index;
-    block_->difficulty = difficulty;
-
-    unsigned int nonce = 0;
-    while (true)
-    {
-        const char hash[HASH_HEX_SIZE];
-        computeHash(block_, hash);
-        if (hashMatchesDifficulty(hash, difficulty))
-        {
-            block_->nonce = nonce;
-            strcpy(block_->hash, hash);
-            return *block_;
-        }
-        nonce++;
-    }
-}
 
 int getDifficulty(Blockchain *blockchain)
 {
     Block *latestBlock = blockchain->head;
     if (latestBlock->index % DIFFICULTY_ADJUSMENT_INTERVAL == 0 && latestBlock->index != 0)
     {
+        printf("\nAdjusting difficulty.. ");
         return getAdjustedDifficulty(latestBlock, blockchain);
     }
     else
@@ -362,3 +361,24 @@ bool isValidTimestamp(Block *newBlock, Block *previousBlock)
 {
     return (previousBlock->timestamp - 60 < newBlock->timestamp) && (newBlock->timestamp - 60 < time(NULL));
 }
+
+
+/**
+ * Interface Utilisateur
+ * ---------------------
+ * Choix : 
+ * 1. Ajouter un nouveau PC
+ * 2. Générer un nouveau block : message
+ * 3. Afficher la liste des PC
+ * 4. Afficher la Blockchain
+ * **/
+
+
+
+/**
+ * 
+ * DISTRIBUTED COMPUTING
+ * -> Création de threads pour simuler des "nodes"
+ * -> Synchronisation des blockchains entre les "nodes"
+ * **/
+
